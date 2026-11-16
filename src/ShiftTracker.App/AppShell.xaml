@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="ShiftTracker.App.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:ShiftTracker.App.Views"
+    Title="ShiftTracker"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False"
+    Shell.BackgroundColor="{DynamicResource AppBackgroundColor}"
+    Shell.TabBarBackgroundColor="{DynamicResource NavBarBackgroundColor}"
+    Shell.TabBarForegroundColor="{DynamicResource PrimaryColor}"
+    Shell.TabBarTitleColor="{DynamicResource PrimaryColor}"
+    Shell.TabBarUnselectedColor="{DynamicResource SecondaryTextColor}">
+
+    <TabBar CurrentItem="{x:Reference MainShiftTab}">
+        <ShellContent
+            Title="📅 Lịch"
+            ContentTemplate="{DataTemplate views:CalendarPage}"
+            Route="CalendarPage" />
+
+        <ShellContent
+            x:Name="MainShiftTab"
+            Title="💎 Ca làm"
+            ContentTemplate="{DataTemplate views:MainShiftPage}"
+            Route="MainShiftPage" />
+
+        <ShellContent
+            Title="📊 Thống kê"
+            ContentTemplate="{DataTemplate views:DashboardPage}"
+            Route="DashboardPage" />
+    </TabBar>
+
+</Shell>

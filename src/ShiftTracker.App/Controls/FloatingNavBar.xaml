@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="ShiftTracker.App.Controls.FloatingNavBar"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Border
+        Margin="20,0,20,16"
+        Padding="8,6"
+        BackgroundColor="{DynamicResource NavBarBackgroundColor}"
+        Stroke="{DynamicResource PrimaryBorderColor}"
+        StrokeThickness="1"
+        HorizontalOptions="Fill"
+        VerticalOptions="End">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="28" />
+        </Border.StrokeShape>
+        <Border.Shadow>
+            <Shadow
+                Brush="#2E000000"
+                Offset="0,8"
+                Radius="18"
+                Opacity="0.24" />
+        </Border.Shadow>
+
+        <Grid
+            ColumnDefinitions="*,*,*"
+            ColumnSpacing="6">
+
+            <!-- TAB 1: LỊCH -->
+            <Border
+                x:Name="CalendarPill"
+                Grid.Column="0"
+                Padding="10,9"
+                BackgroundColor="Transparent"
+                StrokeThickness="0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="22" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnCalendarTapped" />
+                </Border.GestureRecognizers>
+
+                <HorizontalStackLayout
+                    Spacing="6"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center">
+                    <Label
+                        Text="📅"
+                        FontSize="15"
+                        TextColor="{DynamicResource PrimaryColor}"
+                        VerticalOptions="Center" />
+                    <Label
+                        x:Name="CalendarLabel"
+                        Text="Lịch"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource SecondaryTextColor}"
+                        VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- TAB 2: CA LÀM -->
+            <Border
+                x:Name="ShiftPill"
+                Grid.Column="1"
+                Padding="10,9"
+                BackgroundColor="{DynamicResource PrimarySoftColor}"
+                StrokeThickness="0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="22" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnShiftTapped" />
+                </Border.GestureRecognizers>
+
+                <HorizontalStackLayout
+                    Spacing="6"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center">
+                    <Label
+                        Text="💎"
+                        FontSize="15"
+                        TextColor="{DynamicResource PrimaryColor}"
+                        VerticalOptions="Center" />
+                    <Label
+                        x:Name="ShiftLabel"
+                        Text="Ca làm"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource PrimaryColor}"
+                        VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- TAB 3: THỐNG KÊ -->
+            <Border
+                x:Name="DashboardPill"
+                Grid.Column="2"
+                Padding="10,9"
+                BackgroundColor="Transparent"
+                StrokeThickness="0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="22" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnDashboardTapped" />
+                </Border.GestureRecognizers>
+
+                <HorizontalStackLayout
+                    Spacing="6"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center">
+                    <Label
+                        Text="📊"
+                        FontSize="15"
+                        TextColor="{DynamicResource PrimaryColor}"
+                        VerticalOptions="Center" />
+                    <Label
+                        x:Name="DashboardLabel"
+                        Text="Thống kê"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource SecondaryTextColor}"
+                        VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+        </Grid>
+    </Border>
+</ContentView>

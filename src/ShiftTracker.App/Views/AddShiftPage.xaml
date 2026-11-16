@@ -1,0 +1,1011 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ShiftTracker.App.Views.AddShiftPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:ShiftTracker.App.Controls"
+    xmlns:models="clr-namespace:ShiftTracker.App.Models"
+    xmlns:vm="clr-namespace:ShiftTracker.App.ViewModels"
+    x:DataType="vm:AddShiftViewModel"
+    Title="{Binding PageTitle}"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False"
+    BackgroundColor="Transparent">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Lớp 1 & 2: Nền hệ thống + Hình nền tùy chỉnh (Custom Wallpaper & Opacity) -->
+        <controls:AppWallpaperBackground Grid.RowSpan="3" />
+
+        <!-- ================= HEADER: TIÊU ĐỀ & BADGE NGÀY LÀM VIỆC ================= -->
+        <Border
+            Grid.Row="0"
+            Padding="18,14"
+            BackgroundColor="{DynamicResource CardBackgroundColor}"
+            Stroke="{DynamicResource PrimaryBorderColor}"
+            StrokeThickness="1">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="0,0,24,24" />
+            </Border.StrokeShape>
+            <Border.Shadow>
+                <Shadow
+                    Brush="#1A000000"
+                    Offset="0,4"
+                    Radius="12"
+                    Opacity="0.14" />
+            </Border.Shadow>
+
+            <Grid ColumnDefinitions="40,*,40" VerticalOptions="Center">
+                <Border
+                    Grid.Column="0"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    BackgroundColor="{DynamicResource NavButtonBgColor}"
+                    Stroke="{DynamicResource SubtleBorderColor}"
+                    StrokeThickness="1"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding CancelCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label
+                        Text="‹"
+                        FontSize="22"
+                        FontAttributes="Bold"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        HorizontalTextAlignment="Center"
+                        VerticalTextAlignment="Center"
+                        TextColor="{DynamicResource PrimaryColor}" />
+                </Border>
+
+                <VerticalStackLayout
+                    Grid.Column="1"
+                    Spacing="4"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center">
+                    <Label
+                        Text="{Binding PageTitle}"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="Center"
+                        TextColor="{DynamicResource PrimaryTextColor}" />
+
+                    <!-- Badge hiển thị Ngày làm việc (không cho chỉnh sửa ngày) -->
+                    <Border
+                        Padding="12,4"
+                        BackgroundColor="{DynamicResource PrimarySoftColor}"
+                        Stroke="{DynamicResource PrimaryBorderColor}"
+                        StrokeThickness="1"
+                        HorizontalOptions="Center">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="12" />
+                        </Border.StrokeShape>
+                        <Label
+                            Text="{Binding HeaderDateText}"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            HorizontalTextAlignment="Center"
+                            TextColor="{DynamicResource PrimaryColor}" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Nút xóa khi đang ở chế độ chỉnh sửa ca -->
+                <Border
+                    Grid.Column="2"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    BackgroundColor="{DynamicResource NavButtonBgColor}"
+                    Stroke="{DynamicResource SubtleBorderColor}"
+                    StrokeThickness="1"
+                    IsVisible="{Binding IsEditing}"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding DeleteCommand}" />
+                    </Border.GestureRecognizers>
+                    <Label
+                        Text="🗑"
+                        FontSize="16"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        HorizontalTextAlignment="Center"
+                        VerticalTextAlignment="Center"
+                        TextColor="{DynamicResource PrimaryColor}" />
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ================= BODY: FORM NHẬP LIỆU ================= -->
+        <ScrollView
+            Grid.Row="1"
+            VerticalScrollBarVisibility="Never"
+            HorizontalScrollBarVisibility="Never">
+            <VerticalStackLayout Padding="16,14,16,24" Spacing="14">
+
+                <!-- 1. THẺ KHUNG GIỜ LÀM VIỆC & NHIỀU KHUNG GIỜ LẺ (MULTI-SLOT) -->
+                <Border
+                    Padding="16"
+                    BackgroundColor="{DynamicResource CardBackgroundColor}"
+                    Stroke="{DynamicResource PrimaryBorderColor}"
+                    StrokeThickness="1">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="20" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="12">
+                        <Label
+                            Text="⏰ Khung giờ làm việc"
+                            FontSize="15"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource PrimaryTextColor}" />
+
+                        <!-- Gợi ý ngày lễ tự động từ HolidayService -->
+                        <Border
+                            Padding="10,6"
+                            BackgroundColor="{DynamicResource HolidayBadgeBgColor}"
+                            Stroke="#D4AF37"
+                            StrokeThickness="1"
+                            IsVisible="{Binding HasHolidayHint}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+                            <Label
+                                Text="{Binding HolidayHintText}"
+                                FontSize="12"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource PrimaryColor}" />
+                        </Border>
+
+                        <!-- Công tắc Làm việc vào Ngày Lễ (x2, x4) -->
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                                <Label
+                                    Text="Làm việc vào Ngày Lễ (x2, x4) 🏮"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource PrimaryTextColor}" />
+                                <Label
+                                    Text="Nhân x2 giờ thường và x4 giờ OT sau 22:00"
+                                    FontSize="11"
+                                    TextColor="{DynamicResource SecondaryTextColor}" />
+                            </VerticalStackLayout>
+                            <Switch
+                                Grid.Column="1"
+                                IsToggled="{Binding IsHoliday, Mode=TwoWay}"
+                                OnColor="{DynamicResource PrimaryBorderColor}"
+                                ThumbColor="{DynamicResource PrimaryColor}" />
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="{DynamicResource SubtleBorderColor}" />
+
+                        <!-- 2 nút chọn nhanh khung giờ -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label
+                                Text="Chọn nhanh khung giờ (7 tiếng)"
+                                FontSize="12"
+                                TextColor="{DynamicResource SecondaryTextColor}" />
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Border
+                                    Grid.Column="0"
+                                    Padding="12,10"
+                                    BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                                    Stroke="{DynamicResource PrimaryBorderColor}"
+                                    StrokeThickness="1">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="14" />
+                                    </Border.StrokeShape>
+                                    <Border.Triggers>
+                                        <DataTrigger
+                                            TargetType="Border"
+                                            Binding="{Binding IsFirstPreset}"
+                                            Value="True">
+                                            <Setter Property="BackgroundColor" Value="{DynamicResource PrimarySoftColor}" />
+                                            <Setter Property="Stroke" Value="{DynamicResource PrimaryColor}" />
+                                            <Setter Property="StrokeThickness" Value="1.5" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectFirstPresetCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <Label
+                                        Text="08:00 - 15:00"
+                                        FontSize="14"
+                                        FontAttributes="Bold"
+                                        HorizontalTextAlignment="Center"
+                                        VerticalOptions="Center"
+                                        TextColor="{DynamicResource PrimaryTextColor}" />
+                                </Border>
+
+                                <Border
+                                    Grid.Column="1"
+                                    Padding="12,10"
+                                    BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                                    Stroke="{DynamicResource PrimaryBorderColor}"
+                                    StrokeThickness="1">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="14" />
+                                    </Border.StrokeShape>
+                                    <Border.Triggers>
+                                        <DataTrigger
+                                            TargetType="Border"
+                                            Binding="{Binding IsSecondPreset}"
+                                            Value="True">
+                                            <Setter Property="BackgroundColor" Value="{DynamicResource PrimarySoftColor}" />
+                                            <Setter Property="Stroke" Value="{DynamicResource PrimaryColor}" />
+                                            <Setter Property="StrokeThickness" Value="1.5" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectSecondPresetCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <Label
+                                        Text="15:00 - 22:00"
+                                        FontSize="14"
+                                        FontAttributes="Bold"
+                                        HorizontalTextAlignment="Center"
+                                        VerticalOptions="Center"
+                                        TextColor="{DynamicResource PrimaryTextColor}" />
+                                </Border>
+                            </Grid>
+                        </VerticalStackLayout>
+
+                        <!-- Hàng Giờ vào - Giờ ra đầu tiên + Nút vuông bo tròn "+" (36x36, CornerRadius=8) -->
+                        <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="8">
+                            <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                <Label
+                                    Text="Giờ vào thực tế"
+                                    FontSize="12"
+                                    TextColor="{DynamicResource SecondaryTextColor}" />
+                                <Border
+                                    Padding="10,2"
+                                    BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                                    Stroke="{DynamicResource PrimaryBorderColor}"
+                                    StrokeThickness="1">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="12" />
+                                    </Border.StrokeShape>
+                                    <TimePicker
+                                        Time="{Binding StartTime, Mode=TwoWay}"
+                                        Format="HH:mm"
+                                        FontSize="15"
+                                        FontAttributes="Bold"
+                                        TextColor="{DynamicResource PrimaryTextColor}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label
+                                    Text="Giờ ra thực tế"
+                                    FontSize="12"
+                                    TextColor="{DynamicResource SecondaryTextColor}" />
+                                <Border
+                                    Padding="10,2"
+                                    BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                                    Stroke="{DynamicResource PrimaryBorderColor}"
+                                    StrokeThickness="1">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="12" />
+                                    </Border.StrokeShape>
+                                    <TimePicker
+                                        Time="{Binding EndTime, Mode=TwoWay}"
+                                        Format="HH:mm"
+                                        FontSize="15"
+                                        FontAttributes="Bold"
+                                        TextColor="{DynamicResource PrimaryTextColor}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Nút dấu cộng "+" hình vuông bo góc (CornerRadius=8, 36x36) thêm khung giờ lẻ -->
+                            <Border
+                                Grid.Column="2"
+                                WidthRequest="36"
+                                HeightRequest="36"
+                                Margin="0,22,0,0"
+                                BackgroundColor="{DynamicResource PrimarySoftColor}"
+                                Stroke="{DynamicResource PrimaryColor}"
+                                StrokeThickness="1.5"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="8" />
+                                </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding AddTimeSlotCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label
+                                    Text="+"
+                                    FontSize="20"
+                                    FontAttributes="Bold"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center"
+                                    HorizontalTextAlignment="Center"
+                                    TextColor="{DynamicResource PrimaryColor}" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Danh sách các khung giờ lẻ tăng thêm (Multi-slot) -->
+                        <VerticalStackLayout
+                            Spacing="8"
+                            BindableLayout.ItemsSource="{Binding ExtraTimeSlots}"
+                            IsVisible="{Binding HasExtraTimeSlots}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:ShiftTimeSlot">
+                                    <Grid ColumnDefinitions="*,*,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            Padding="10,2"
+                                            BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                                            Stroke="{DynamicResource PrimaryBorderColor}"
+                                            StrokeThickness="1">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="12" />
+                                            </Border.StrokeShape>
+                                            <TimePicker
+                                                Time="{Binding StartTime, Mode=TwoWay}"
+                                                Format="HH:mm"
+                                                FontSize="15"
+                                                FontAttributes="Bold"
+                                                TextColor="{DynamicResource PrimaryTextColor}" />
+                                        </Border>
+
+                                        <Border
+                                            Grid.Column="1"
+                                            Padding="10,2"
+                                            BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                                            Stroke="{DynamicResource PrimaryBorderColor}"
+                                            StrokeThickness="1">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="12" />
+                                            </Border.StrokeShape>
+                                            <TimePicker
+                                                Time="{Binding EndTime, Mode=TwoWay}"
+                                                Format="HH:mm"
+                                                FontSize="15"
+                                                FontAttributes="Bold"
+                                                TextColor="{DynamicResource PrimaryTextColor}" />
+                                        </Border>
+
+                                        <Border
+                                            Grid.Column="2"
+                                            WidthRequest="36"
+                                            HeightRequest="36"
+                                            BackgroundColor="{DynamicResource PrimarySoftColor}"
+                                            Stroke="{DynamicResource AccentColor}"
+                                            StrokeThickness="1"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="8" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer
+                                                    Command="{Binding RemoveCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
+                                            <Label
+                                                Text="✕"
+                                                FontSize="13"
+                                                FontAttributes="Bold"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center"
+                                                HorizontalTextAlignment="Center"
+                                                TextColor="{DynamicResource PrimaryColor}" />
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 2. THẺ LÀM CÙNG AI (CHỌN NHANH THẺ TÊN & QUẢN LÝ THẺ TÊN TRONG CSDL) -->
+                <Border
+                    Padding="16"
+                    BackgroundColor="{DynamicResource CardBackgroundColor}"
+                    Stroke="{DynamicResource PrimaryBorderColor}"
+                    StrokeThickness="1">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="20" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="0" Spacing="1" VerticalOptions="Center">
+                                <Label
+                                    Text="👥 Làm cùng ai"
+                                    FontSize="15"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource PrimaryTextColor}" />
+                                <Label
+                                    Text="Chạm vào thẻ tên để bật/tắt nhanh cho ca này"
+                                    FontSize="11"
+                                    TextColor="{DynamicResource SecondaryTextColor}" />
+                            </VerticalStackLayout>
+
+                            <!-- Nút bo tròn nhỏ "⚙️ Quản lý thẻ tên" -->
+                            <Border
+                                Grid.Column="1"
+                                Padding="10,6"
+                                BackgroundColor="{DynamicResource PrimarySoftColor}"
+                                Stroke="{DynamicResource PrimaryBorderColor}"
+                                StrokeThickness="1"
+                                VerticalOptions="Center">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="14" />
+                                </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenManageTagsPopupCommand}" />
+                                </Border.GestureRecognizers>
+                                <Label
+                                    Text="⚙️ Quản lý thẻ tên"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource PrimaryColor}" />
+                            </Border>
+                        </Grid>
+
+                        <!-- Thông báo khi chưa có thẻ tên nào trong CSDL -->
+                        <Border
+                            Padding="12,10"
+                            BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                            Stroke="{DynamicResource PrimaryBorderColor}"
+                            StrokeThickness="1"
+                            IsVisible="{Binding HasNoAvailableTags}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12" />
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding OpenManageTagsPopupCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label
+                                Text="Chưa có thẻ tên đồng nghiệp nào. Bấm '⚙️ Quản lý thẻ tên' để thêm danh sách chọn nhanh!"
+                                FontSize="12"
+                                TextColor="{DynamicResource SecondaryTextColor}" />
+                        </Border>
+
+                        <!-- Danh sách các chip thẻ tên chọn nhanh (CornerRadius="14") -->
+                        <FlexLayout
+                            Wrap="Wrap"
+                            Direction="Row"
+                            JustifyContent="Start"
+                            AlignItems="Center"
+                            BindableLayout.ItemsSource="{Binding AvailableCoworkerTags}"
+                            IsVisible="{Binding HasAvailableTags}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:CoworkerTagItem">
+                                    <Border
+                                        Margin="0,4,8,4"
+                                        Padding="12,6"
+                                        BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                                        Stroke="{DynamicResource SubtleBorderColor}"
+                                        StrokeThickness="1">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="14" />
+                                        </Border.StrokeShape>
+                                        <Border.Triggers>
+                                            <DataTrigger
+                                                TargetType="Border"
+                                                Binding="{Binding IsSelected}"
+                                                Value="True">
+                                                <Setter Property="BackgroundColor" Value="{DynamicResource PrimaryColor}" />
+                                                <Setter Property="Stroke" Value="{DynamicResource PrimaryColor}" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding ToggleCommand}"
+                                                CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+
+                                        <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                            <Label
+                                                Text="{Binding Name}"
+                                                FontSize="13"
+                                                FontAttributes="Bold"
+                                                TextColor="{DynamicResource PrimaryTextColor}"
+                                                VerticalOptions="Center">
+                                                <Label.Triggers>
+                                                    <DataTrigger
+                                                        TargetType="Label"
+                                                        Binding="{Binding IsSelected}"
+                                                        Value="True">
+                                                        <Setter Property="TextColor" Value="#FFFFFF" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
+                                            <Label
+                                                Text="✓"
+                                                FontSize="11"
+                                                FontAttributes="Bold"
+                                                TextColor="#FFFFFF"
+                                                VerticalOptions="Center"
+                                                IsVisible="{Binding IsSelected}" />
+                                        </HorizontalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 3. THẺ ĐI TRỄ (EXPANDABLE) -->
+                <Border
+                    Padding="16"
+                    BackgroundColor="{DynamicResource CardBackgroundColor}"
+                    Stroke="{DynamicResource PrimaryBorderColor}"
+                    StrokeThickness="1">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="20" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <CheckBox
+                                IsChecked="{Binding HasLate, Mode=TwoWay}"
+                                Color="{DynamicResource PrimaryColor}"
+                                VerticalOptions="Center" />
+                            <VerticalStackLayout Spacing="1" VerticalOptions="Center">
+                                <Label
+                                    Text="Có đi trễ ⏱️"
+                                    FontSize="15"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource PrimaryTextColor}" />
+                                <Label
+                                    Text="≤ 4 phút: miễn phạt • &gt; 4 phút: 1k/phút"
+                                    FontSize="11"
+                                    TextColor="{DynamicResource SecondaryTextColor}" />
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <!-- Chỉ hiện 1 ô Entry nhập Số phút đi trễ khi tick chọn -->
+                        <VerticalStackLayout
+                            Spacing="6"
+                            IsVisible="{Binding HasLate}">
+                            <BoxView HeightRequest="1" Color="{DynamicResource SubtleBorderColor}" Margin="0,2" />
+                            <Label
+                                Text="Số phút đi trễ"
+                                FontSize="12"
+                                TextColor="{DynamicResource SecondaryTextColor}" />
+                            <Border
+                                Padding="12,2"
+                                BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                                Stroke="{DynamicResource PrimaryBorderColor}"
+                                StrokeThickness="1">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="14" />
+                                </Border.StrokeShape>
+                                <Entry
+                                    Text="{Binding LateMinutesText, Mode=TwoWay}"
+                                    Keyboard="Numeric"
+                                    Placeholder="Nhập số phút đi trễ (vd: 5)"
+                                    PlaceholderColor="#9E9E9E"
+                                    FontSize="15"
+                                    TextColor="{DynamicResource PrimaryTextColor}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 4. THẺ LÀM DÙM (EXPANDABLE) -->
+                <Border
+                    Padding="16"
+                    BackgroundColor="{DynamicResource CardBackgroundColor}"
+                    Stroke="{DynamicResource PrimaryBorderColor}"
+                    StrokeThickness="1">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="20" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <CheckBox
+                                IsChecked="{Binding IsCoverShift, Mode=TwoWay}"
+                                Color="{DynamicResource PrimaryColor}"
+                                VerticalOptions="Center" />
+                            <VerticalStackLayout Spacing="1" VerticalOptions="Center">
+                                <Label
+                                    Text="Làm ca thay người khác (Làm dùm)"
+                                    FontSize="15"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource PrimaryTextColor}" />
+                                <Label
+                                    Text="Lương tính theo tổng giờ thực tế của các khung giờ đã chọn"
+                                    FontSize="11"
+                                    TextColor="{DynamicResource SecondaryTextColor}" />
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <!-- Khi tick chọn: chỉ hiện ô Editor nhập Ghi chú làm dùm -->
+                        <VerticalStackLayout
+                            Spacing="6"
+                            IsVisible="{Binding IsCoverShift}">
+                            <BoxView HeightRequest="1" Color="{DynamicResource SubtleBorderColor}" Margin="0,2" />
+                            <Label
+                                Text="Ghi chú làm dùm"
+                                FontSize="12"
+                                TextColor="{DynamicResource SecondaryTextColor}" />
+                            <Border
+                                Padding="12,6"
+                                BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                                Stroke="{DynamicResource PrimaryBorderColor}"
+                                StrokeThickness="1">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="14" />
+                                </Border.StrokeShape>
+                                <Editor
+                                    Text="{Binding ShiftNote, Mode=TwoWay}"
+                                    Placeholder="Ví dụ: Làm thay bạn Lan từ 11:00..."
+                                    PlaceholderColor="#9E9E9E"
+                                    AutoSize="TextChanges"
+                                    MinimumHeightRequest="68"
+                                    FontSize="14"
+                                    TextColor="{DynamicResource PrimaryTextColor}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 5. THẺ KHOẢN PHẠT PHÁT SINH KHÁC (EXPANDABLE) -->
+                <Border
+                    Padding="16"
+                    BackgroundColor="{DynamicResource CardBackgroundColor}"
+                    Stroke="{DynamicResource PrimaryBorderColor}"
+                    StrokeThickness="1">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="20" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <CheckBox
+                                IsChecked="{Binding HasOtherPenalty, Mode=TwoWay}"
+                                Color="{DynamicResource PrimaryColor}"
+                                VerticalOptions="Center" />
+                            <VerticalStackLayout Spacing="1" VerticalOptions="Center">
+                                <Label
+                                    Text="Có khoản phạt khác"
+                                    FontSize="15"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource PrimaryTextColor}" />
+                                <Label
+                                    Text="Đánh dấu nếu phát sinh khoản trừ phạt trong ca"
+                                    FontSize="11"
+                                    TextColor="{DynamicResource SecondaryTextColor}" />
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <VerticalStackLayout
+                            Spacing="10"
+                            IsVisible="{Binding HasOtherPenalty}">
+
+                            <BoxView HeightRequest="1" Color="{DynamicResource SubtleBorderColor}" Margin="0,2" />
+
+                            <VerticalStackLayout Spacing="6">
+                                <Label
+                                    Text="Số tiền phạt (VNĐ)"
+                                    FontSize="12"
+                                    TextColor="{DynamicResource SecondaryTextColor}" />
+                                <Border
+                                    Padding="12,2"
+                                    BackgroundColor="{DynamicResource PrimarySoftColor}"
+                                    Stroke="{DynamicResource PrimaryBorderColor}"
+                                    StrokeThickness="1">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="14" />
+                                    </Border.StrokeShape>
+                                    <Entry
+                                        Text="{Binding OtherPenaltyAmountText, Mode=TwoWay}"
+                                        Keyboard="Numeric"
+                                        Placeholder="Nhập số tiền phạt (vd: 50000)"
+                                        PlaceholderColor="#9E9E9E"
+                                        FontSize="15"
+                                        TextColor="{DynamicResource PrimaryColor}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Spacing="6">
+                                <Label
+                                    Text="Nguyên do bị phạt"
+                                    FontSize="12"
+                                    TextColor="{DynamicResource SecondaryTextColor}" />
+                                <Border
+                                    Padding="12,6"
+                                    BackgroundColor="{DynamicResource PrimarySoftColor}"
+                                    Stroke="{DynamicResource PrimaryBorderColor}"
+                                    StrokeThickness="1">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="14" />
+                                    </Border.StrokeShape>
+                                    <Editor
+                                        Text="{Binding OtherPenaltyNote, Mode=TwoWay}"
+                                        Placeholder="Nhập lý do khoản phạt phát sinh..."
+                                        PlaceholderColor="#9E9E9E"
+                                        AutoSize="TextChanges"
+                                        MinimumHeightRequest="64"
+                                        FontSize="14"
+                                        TextColor="{DynamicResource PrimaryTextColor}" />
+                                </Border>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- 6. THẺ TẠM TÍNH LƯƠNG CA LÀM TRỰC TIẾP (LIVE PREVIEW) -->
+                <Border
+                    Padding="16"
+                    BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                    Stroke="{DynamicResource PrimaryBorderColor}"
+                    StrokeThickness="1">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="20" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label
+                            Text="💎 Tạm tính thu nhập ca này"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource PrimaryColor}" />
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Tổng thời gian làm:" FontSize="13" TextColor="{DynamicResource SecondaryTextColor}" />
+                            <Label Grid.Column="1" Text="{Binding PreviewDurationText}" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource PrimaryTextColor}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Text="Lương giờ chuẩn:" FontSize="13" TextColor="{DynamicResource SecondaryTextColor}" />
+                            <Label Grid.Column="1" Text="{Binding PreviewRegularWageText}" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource PrimaryTextColor}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding PreviewHasOt}">
+                            <Label Text="⚡ Lương tăng ca (OT sau 22:00):" FontSize="13" TextColor="#059669" />
+                            <Label Grid.Column="1" Text="{Binding PreviewOtText}" FontSize="13" FontAttributes="Bold" TextColor="#059669" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding PreviewHasLatePenalty}">
+                            <Label Text="⏱️ Phạt đi trễ:" FontSize="13" TextColor="{DynamicResource AccentColor}" />
+                            <Label Grid.Column="1" Text="{Binding PreviewLatePenaltyText}" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource AccentColor}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding PreviewHasOtherPenalty}">
+                            <Label Text="Khoản phạt khác:" FontSize="13" TextColor="{DynamicResource AccentColor}" />
+                            <Label Grid.Column="1" Text="{Binding PreviewOtherPenaltyText}" FontSize="13" FontAttributes="Bold" TextColor="{DynamicResource AccentColor}" />
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="{DynamicResource PrimaryBorderColor}" Margin="0,2" />
+
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <Label
+                                Text="Thực nhận ca này:"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource PrimaryTextColor}"
+                                VerticalOptions="Center" />
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding PreviewNetSalaryText}"
+                                FontSize="20"
+                                FontAttributes="Bold"
+                                TextColor="#059669"
+                                VerticalOptions="Center" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ================= FOOTER: NÚT LƯU CA LÀM ================= -->
+        <Border
+            Grid.Row="2"
+            Padding="16,12,16,18"
+            BackgroundColor="{DynamicResource CardBackgroundColor}"
+            Stroke="{DynamicResource PrimaryBorderColor}"
+            StrokeThickness="1">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="24,24,0,0" />
+            </Border.StrokeShape>
+
+            <Grid ColumnDefinitions="*,2*" ColumnSpacing="12">
+                <Button
+                    Grid.Column="0"
+                    Text="Hủy"
+                    Command="{Binding CancelCommand}"
+                    HeightRequest="50"
+                    CornerRadius="16"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    BackgroundColor="{DynamicResource PrimarySoftColor}"
+                    TextColor="{DynamicResource PrimaryColor}" />
+
+                <Button
+                    Grid.Column="1"
+                    Text="Lưu ca làm ✨"
+                    Command="{Binding SaveCommand}"
+                    HeightRequest="50"
+                    CornerRadius="16"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    BackgroundColor="{DynamicResource PrimaryColor}"
+                    TextColor="#FFFFFF" />
+            </Grid>
+        </Border>
+
+        <!-- ================= POPUP QUẢN LÝ THẺ TÊN ĐỒNG NGHIỆP (SQLite CRUD) ================= -->
+        <Grid
+            Grid.RowSpan="3"
+            BackgroundColor="#66000000"
+            IsVisible="{Binding IsManageTagsPopupOpen}">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseManageTagsPopupCommand}" />
+            </Grid.GestureRecognizers>
+
+            <Border
+                Margin="22"
+                Padding="20"
+                BackgroundColor="{DynamicResource CardBackgroundColor}"
+                Stroke="{DynamicResource PrimaryBorderColor}"
+                StrokeThickness="1.5"
+                HorizontalOptions="Fill"
+                VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="24" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer />
+                </Border.GestureRecognizers>
+
+                <VerticalStackLayout Spacing="14">
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <VerticalStackLayout Spacing="2">
+                            <Label
+                                Text="⚙️ Quản lý thẻ tên đồng nghiệp"
+                                FontSize="17"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource PrimaryTextColor}" />
+                            <Label
+                                Text="Thêm tên vào CSDL để chọn nhanh cho các ca làm sau"
+                                FontSize="12"
+                                TextColor="{DynamicResource SecondaryTextColor}" />
+                        </VerticalStackLayout>
+
+                        <Border
+                            Grid.Column="1"
+                            WidthRequest="32"
+                            HeightRequest="32"
+                            BackgroundColor="{DynamicResource PrimarySoftColor}"
+                            StrokeThickness="0">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="16" />
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding CloseManageTagsPopupCommand}" />
+                            </Border.GestureRecognizers>
+                            <Label
+                                Text="✕"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"
+                                TextColor="{DynamicResource PrimaryColor}" />
+                        </Border>
+                    </Grid>
+
+                    <!-- Ô nhập tên mới lưu vào CSDL -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                        <Border
+                            Grid.Column="0"
+                            Padding="12,2"
+                            BackgroundColor="{DynamicResource PrimaryCardTintColor}"
+                            Stroke="{DynamicResource PrimaryBorderColor}"
+                            StrokeThickness="1">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="14" />
+                            </Border.StrokeShape>
+                            <Entry
+                                Text="{Binding NewCoworkerName, Mode=TwoWay}"
+                                ReturnCommand="{Binding AddCoworkerTagCommand}"
+                                Placeholder="Nhập tên mới (vd: Lan, Tuấn)..."
+                                PlaceholderColor="#9E9E9E"
+                                FontSize="14"
+                                TextColor="{DynamicResource PrimaryTextColor}" />
+                        </Border>
+
+                        <Button
+                            Grid.Column="1"
+                            Text="Lưu thẻ"
+                            Command="{Binding AddCoworkerTagCommand}"
+                            HeightRequest="42"
+                            Padding="16,0"
+                            CornerRadius="14"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            BackgroundColor="{DynamicResource PrimaryColor}"
+                            TextColor="#FFFFFF" />
+                    </Grid>
+
+                    <BoxView HeightRequest="1" Color="{DynamicResource SubtleBorderColor}" />
+
+                    <!-- Danh sách các thẻ tên đã lưu kèm nút "✕" để xóa -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label
+                            Text="Danh sách thẻ đã lưu (chạm ✕ để xóa khỏi CSDL):"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource SecondaryTextColor}" />
+
+                        <Label
+                            Text="Chưa có thẻ tên nào được lưu."
+                            FontSize="12"
+                            TextColor="{DynamicResource SecondaryTextColor}"
+                            IsVisible="{Binding HasNoAvailableTags}" />
+
+                        <FlexLayout
+                            Wrap="Wrap"
+                            Direction="Row"
+                            JustifyContent="Start"
+                            AlignItems="Center"
+                            BindableLayout.ItemsSource="{Binding AvailableCoworkerTags}"
+                            IsVisible="{Binding HasAvailableTags}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:CoworkerTagItem">
+                                    <Border
+                                        Margin="0,4,8,4"
+                                        Padding="12,6"
+                                        BackgroundColor="{DynamicResource PrimarySoftColor}"
+                                        Stroke="{DynamicResource PrimaryBorderColor}"
+                                        StrokeThickness="1">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="14" />
+                                        </Border.StrokeShape>
+
+                                        <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                            <Label
+                                                Text="{Binding Name}"
+                                                FontSize="13"
+                                                FontAttributes="Bold"
+                                                TextColor="{DynamicResource PrimaryColor}"
+                                                VerticalOptions="Center" />
+
+                                            <Border
+                                                WidthRequest="20"
+                                                HeightRequest="20"
+                                                BackgroundColor="{DynamicResource CardBackgroundColor}"
+                                                StrokeThickness="0"
+                                                VerticalOptions="Center">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="10" />
+                                                </Border.StrokeShape>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer
+                                                        Command="{Binding DeleteCommand}"
+                                                        CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                                <Label
+                                                    Text="✕"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    HorizontalOptions="Center"
+                                                    VerticalOptions="Center"
+                                                    TextColor="{DynamicResource PrimaryColor}" />
+                                            </Border>
+                                        </HorizontalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+    </Grid>
+</ContentPage>
